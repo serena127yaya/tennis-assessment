@@ -1,5 +1,5 @@
 // Service Worker for Kids Tennis Assessment PWA
-const CACHE = 'tennis-v8-20260708-r2';
+const CACHE = 'tennis-v9-1-20260708-iris';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
