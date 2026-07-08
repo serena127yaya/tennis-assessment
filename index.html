@@ -1065,7 +1065,7 @@ async function generatePdfBlob(r) {
   return pdf.output('blob');
 }
 
-// ① 保存到文件按钮（用 <a download> 触发 iOS 存储到文件面板）
+// ① 保存到文件按钮：iOS PWA 走 PDF 预览路径（最稳），其他回退 <a download>
 document.getElementById('btnSaveFile').onclick = async () => {
   const r = getCurrentReport();
   if (!r) { alert('请先选择学员和评估 / Select a student first'); return; }
@@ -1075,6 +1075,23 @@ document.getElementById('btnSaveFile').onclick = async () => {
   try {
     const blob = await generatePdfBlob(r);
     const fileName = '艾锐斯_' + r.stu.name + '_评估报告_' + r.current.date + '.pdf';
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+    // iOS PWA：<a download> 在 PWA 模式下不弹"存储到文件"面板（iOS 系统 bug）
+    // 解决：先弹 PDF 预览，用户在预览里点右上角"分享"→ 系统面板里有"存储到文件"
+    if (isMobile && isPWA) {
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, '_blank');
+      if (win) {
+        btn.textContent = '✅ 已弹PDF预览';
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+        return;
+      }
+    }
+
+    // 其他情况：<a download>（桌面 / Android / iOS Safari）
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = fileName;
@@ -1084,7 +1101,7 @@ document.getElementById('btnSaveFile').onclick = async () => {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   } catch (err) {
     console.error('保存到文件失败:', err);
-    alert('保存失败：' + (err.message || err) + '\n请用「分享PDF」或 Safari 打开。');
+    alert('保存失败：' + (err.message || err) + '\n请用 Safari 直接打开本链接（非PWA）重试。');
   } finally {
     btn.disabled = false; btn.textContent = orig;
   }
