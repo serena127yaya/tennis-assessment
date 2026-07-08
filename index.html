@@ -105,7 +105,11 @@ body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
   <div class="actions" id="topActions">
     <button class="btn-primary" id="btnNew">+ 新建评估</button>
     <button class="btn-secondary" id="btnShare">分享给家长</button>
+    <button class="btn-secondary" id="btnSaveFile">📥 保存到文件</button>
     <button class="btn-secondary" id="btnExportPdf">导出PDF</button>
+  </div>
+  <div style="font-size:11px;color:#7f8c8d;text-align:center;margin:-8px 0 12px;padding:0 16px;" id="pdfHint">
+    💡 想发微信？点「保存到文件」→ 进 iPhone「文件」App → 长按 PDF → 微信转发
   </div>
   <div class="section" id="studentSelector"></div>
   <div class="timeline" id="timeline"></div>
@@ -1179,6 +1183,60 @@ document.getElementById('btnExportPdf').onclick = async () => {
   } catch (err) {
     console.error('PDF 生成失败:', err);
     alert('PDF 生成失败：' + (err.message || err) + '\n\n如使用微信内置浏览器，请点击右上角"在浏览器中打开"。');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+};
+
+// 按钮2：保存到文件 → iOS 100% 走"存储到文件"面板，发微信请走这一步
+document.getElementById('btnSaveFile').onclick = async () => {
+  const r = getCurrentReport();
+  if (!r) { alert('请先选择学员和评估'); return; }
+  const btn = document.getElementById('btnSaveFile');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '生成中…';
+  try {
+    const target = document.querySelector('.app') || document.body;
+    const topActions = document.getElementById('topActions');
+    const timelineEl = document.getElementById('timeline');
+    const hideEls = [topActions, timelineEl].filter(Boolean);
+    const prevDisplay = hideEls.map(e => e.style.display);
+    hideEls.forEach(e => e.style.display = 'none');
+    await new Promise(res => setTimeout(res, 400));
+    const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+    hideEls.forEach((e, i) => e.style.display = prevDisplay[i]);
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pageW = 210, pageH = 297;
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    if (imgH <= pageH) {
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+    } else {
+      let remaining = imgH, y = 0;
+      while (remaining > 0) {
+        pdf.addImage(imgData, 'JPEG', 0, -y, imgW, imgH);
+        remaining -= pageH; y += pageH;
+        if (remaining > 0) pdf.addPage();
+      }
+    }
+    const fileName = `${r.stu.name}_评估报告_${r.current.date}.pdf`;
+    const blob = pdf.output('blob');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1000);
+  } catch (err) {
+    console.error('保存文件失败:', err);
+    alert('保存文件失败：' + (err.message || err));
   } finally {
     btn.disabled = false; btn.textContent = orig;
   }
