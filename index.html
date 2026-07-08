@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>少儿网球评估表 Tennis Assessment</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior-y: contain; }
+body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f5f5; color: #2c3e50; font-size: 16px; -webkit-text-size-adjust: 100%; }
+.app { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; padding-bottom: 80px; }
+.header { background: linear-gradient(135deg, #2d8659, #1e5d3d); color: #fff; padding: 16px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.header h1 { font-size: 18px; }
+.header .sub { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+.actions { display: flex; gap: 8px; padding: 12px; background: #f8f9fa; flex-wrap: wrap; }
+.actions button { flex: 1; min-width: 80px; min-height: 48px; padding: 12px 14px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600; -webkit-appearance: none; touch-action: manipulation; }
+.btn-primary { background: #2d8659; color: #fff; }
+.btn-secondary { background: #fff; color: #2d8659; border: 1px solid #2d8659 !important; }
+.btn-warn { background: #ff6b35; color: #fff; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.card { background: #fff; margin: 12px; padding: 16px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.card h2 { font-size: 15px; margin-bottom: 12px; color: #1e5d3d; display: flex; align-items: center; justify-content: space-between; }
+.card h2 .en { font-size: 11px; color: #95a5a6; font-weight: normal; }
+.info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #ecf0f1; }
+.info-row:last-child { border-bottom: none; }
+.info-row .label { color: #7f8c8d; }
+.info-row .value { color: #2c3e50; font-weight: 500; }
+.score-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; min-height: 48px; }
+.score-row:last-child { border-bottom: none; }
+.score-row .name { flex: 1; }
+.score-row .name .en { display: block; font-size: 10px; color: #95a5a6; }
+.bar-wrap { flex: 1.5; display: flex; flex-direction: column; gap: 3px; margin: 0 8px; }
+.bar { height: 8px; background: #ecf0f1; border-radius: 4px; position: relative; overflow: hidden; }
+.bar .fill { position: absolute; left: 0; top: 0; height: 100%; background: #2d8659; border-radius: 4px; transition: width 0.3s; }
+.bar .fill.prev { background: #bdc3c7; }
+.score-num { width: 44px; text-align: right; font-weight: 600; color: #2d8659; }
+.score-num .delta { display: block; font-size: 10px; color: #e67e22; font-weight: normal; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.chip { padding: 12px 16px; min-height: 44px; background: #ecf0f1; border-radius: 22px; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; user-select: none; display: inline-flex; align-items: center; touch-action: manipulation; }
+.chip.selected { background: #2d8659; color: #fff; border-color: #1e5d3d; }
+.chip.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+.chip.warn { background: #fff5eb; color: #ff6b35; border-color: #ff6b35; }
+.chip.warn.selected { background: #ff6b35; color: #fff; }
+.audio-bar { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 8px; }
+.audio-bar audio { width: 100%; margin-top: 6px; }
+.timeline { display: flex; gap: 8px; overflow-x: auto; padding: 8px 12px; -webkit-overflow-scrolling: touch; }
+.timeline-item { flex-shrink: 0; padding: 10px 14px; min-height: 40px; background: #fff; border: 1px solid #2d8659; color: #2d8659; border-radius: 20px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; touch-action: manipulation; }
+.timeline-item.active { background: #2d8659; color: #fff; }
+.empty { text-align: center; padding: 40px 20px; color: #95a5a6; }
+.modal-mask { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: flex-end; justify-content: center; touch-action: none; }
+.modal-mask.show { display: flex; }
+.modal { background: #fff; width: 100%; max-width: 480px; height: 92vh; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; border-radius: 20px 20px 0 0; padding: 20px 16px env(safe-area-inset-bottom, 16px); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+.modal h3 { margin-bottom: 12px; font-size: 18px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: #7f8c8d; margin-bottom: 6px; font-weight: 500; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; font-family: inherit; -webkit-appearance: none; background: #fff; }
+.form-group textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+.dots { display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; }
+.dot { width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-radius: 50%; background: #ecf0f1; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; font-weight: 600; color: #95a5a6; transition: all 0.15s; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.dot.active { background: #2d8659; color: #fff; transform: scale(1.05); }
+.dot:active { transform: scale(0.92); }
+.weak-cat { margin-top: 16px; }
+.weak-cat .title { font-size: 13px; font-weight: 600; color: #7f8c8d; margin-bottom: 8px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #ecf0f1; position: sticky; bottom: 0; background: #fff; padding-bottom: env(safe-area-inset-bottom, 0); }
+.modal-actions button { flex: 1; min-height: 52px; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+.progress { padding: 8px 12px; background: #f8f9fa; font-size: 12px; color: #7f8c8d; }
+.progress .bar-outer { height: 6px; background: #ecf0f1; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.progress .bar-inner { height: 100%; background: #2d8659; width: 0%; transition: width 0.3s; }
+.radar-wrap { text-align: center; margin: 8px 0; }
+.section { padding: 8px 12px; }
+.section-title { font-size: 13px; font-weight: 600; padding: 8px 0; border-bottom: 1px solid #ecf0f1; margin-bottom: 8px; color: #1e5d3d; }
+.rec-status { font-size: 12px; color: #7f8c8d; margin-top: 4px; }
+.rec-status.live { color: #e74c3c; font-weight: 600; }
+.rec-btn { min-height: 48px; padding: 12px 16px; font-size: 15px; border-radius: 10px; touch-action: manipulation; }
+.rec-btn-row button { min-height: 48px; padding: 12px 16px; font-size: 15px; border-radius: 10px; }
+.timeline-item { min-height: 44px !important; padding: 10px 14px !important; }
+@media print {
+  body { background: #fff; }
+  .actions, .timeline, .header { display: none !important; }
+  .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+}
+</style>
+  <meta name="theme-color" content="#16a34a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="网球评估">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSIjMTZhMzRhIi8+PHRleHQgeD0iNTAlIiB5PSI1NSUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LXNpemU9IjkwIiBmb250LWZhbWlseT0iYXJpYWwiPvCfk5o8L3RleHQ+PC9zdmc+">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(()=>{});
+      });
+    }
+  </script>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>🎾 少儿网球学员评估表</h1>
+    <div class="sub">Kids Tennis Assessment</div>
+  </div>
+  <div class="actions" id="topActions">
+    <button class="btn-primary" id="btnNew">+ 新建评估</button>
+    <button class="btn-secondary" id="btnShare">分享给家长</button>
+    <button class="btn-secondary" id="btnExportPdf">导出PDF</button>
+  </div>
+  <div class="section" id="studentSelector"></div>
+  <div class="timeline" id="timeline"></div>
+  <div id="reportCard" class="card">
+    <h2>学员信息 <span class="en">Student Info</span></h2>
+    <div id="studentInfo"></div>
+  </div>
+  <div class="card" id="scoresCard">
+    <h2>11 项评分 <span class="en">11 Skills</span><span style="font-size:11px;color:#7f8c8d;" id="avgScore"></span></h2>
+    <div class="radar-wrap"><svg id="radarSvg" width="280" height="280"></svg></div>
+    <div id="scoreList"></div>
+  </div>
+  <div class="card" id="highlightsCard" style="display:none">
+    <h2>进步亮点 <span class="en">Highlights</span></h2>
+    <div class="chips" id="highlightsChips"></div>
+  </div>
+  <div class="card" id="suggestionsCard" style="display:none">
+    <h2>重点建议 <span class="en">Focus Areas</span></h2>
+    <div class="chips" id="suggestionsChips"></div>
+  </div>
+  <div class="card" id="weakCard" style="display:none">
+    <h2>薄弱问题 <span class="en">Weak Areas</span></h2>
+    <div id="weakList"></div>
+  </div>
+  <div class="card" id="classCard" style="display:none">
+    <h2>班级建议 <span class="en">Class Plan</span></h2>
+    <div id="classText"></div>
+  </div>
+  <div class="card" id="voiceCard" style="display:none">
+    <h2>教练评语 <span class="en">Coach Note</span></h2>
+    <div id="voiceWrap" class="audio-bar"></div>
+    <div id="transcriptText" style="margin-top:8px;font-size:13px;color:#2c3e50;"></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <h3 id="modalTitle">新建评估</h3>
+    <div class="progress" id="progressBar">
+      <div id="progressText">完成 0/6</div>
+      <div class="bar-outer"><div class="bar-inner" id="progressFill"></div></div>
+    </div>
+    
+    <div class="form-group">
+      <label>学员姓名 Student</label>
+      <input type="text" id="inName" placeholder="如：小明">
+    </div>
+    <div class="form-group">
+      <label>年龄段 Age Group</label>
+      <select id="inAge">
+        <option value="4-6岁">4-6岁</option>
+        <option value="7-9岁" selected>7-9岁</option>
+        <option value="10-12岁">10-12岁</option>
+        <option value="13岁+">13岁+</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>评估日期 Date</label>
+      <input type="date" id="inDate">
+    </div>
+    <div class="form-group">
+      <label>评估周期 Period</label>
+      <input type="text" id="inPeriod" placeholder="如：2026 Q2">
+    </div>
+
+    <div class="section-title">① 11 项评分（每项 1-5 分）</div>
+    <div id="scoreInputs"></div>
+
+    <div class="section-title">② 薄弱问题（每类最多 2 个）</div>
+    <div id="weakInputs"></div>
+
+    <div class="section-title">③ 进步亮点（最多 3 个）</div>
+    <div id="highlightsInput" class="chips"></div>
+
+    <div class="section-title">④ 重点建议（最多 2 个）</div>
+    <div id="suggestionsInput" class="chips"></div>
+
+    <div class="section-title">⑤ 班级适配建议（必填）</div>
+    <div id="classInput" class="chips"></div>
+
+    <div class="section-title">⑥ 教练评语（语音 + 文字）</div>
+    <div class="form-group">
+      <label>🎙️ 录制语音（≤30秒）</label>
+      <div class="rec-btn-row" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="btn-primary" id="btnRecord" style="flex:1; min-width:120px;">开始录音</button>
+        <button type="button" class="btn-secondary" id="btnPlayVoice" style="display:none">▶ 试听</button>
+        <button type="button" class="btn-warn" id="btnDeleteVoice" style="display:none">删除</button>
+      </div>
+      <div id="recordStatus" class="rec-status"></div>
+      <audio id="audioPreview" controls style="display:none;width:100%;margin-top:6px;"></audio>
+    </div>
+    <div class="form-group">
+      <label>或文字评语（≤200字）</label>
+      <textarea id="inText" maxlength="200" placeholder="如：本周期击球稳定性明显提升..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btnCancel">取消</button>
+      <button class="btn-primary" id="btnSave">保存评估</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SKILL_KEYS = ['forehand','backhand','serve','return','volley','overhead','footwork','anticipation','matchIq','endurance','focus'];
+const SKILL_LABELS = {
+  forehand: ['正手击球','Forehand'],
+  backhand: ['反手击球','Backhand'],
+  serve: ['发球','Serve'],
+  return: ['接发球','Return'],
+  volley: ['截击','Volley'],
+  overhead: ['高压球','Overhead'],
+  footwork: ['移动步伐','Footwork'],
+  anticipation: ['来球预判','Anticipation'],
+  matchIq: ['比赛意识','Match IQ'],
+  endurance: ['体能耐力','Endurance'],
+  focus: ['课堂专注度','Focus']
+};
+const HIGHLIGHT_OPTIONS = [
+  '击球稳定性提升 Stroke stability improved',
+  '击球力度有进步 Power control improved',
+  '移动更积极 Movement more active',
+  '战术意识增强 Tactical awareness',
+  '主动训练意识强 Self-driven training',
+  '抗压能力提升 Composure under pressure',
+  '步法灵活性 Footwork agility',
+  '比赛专注度 Match focus',
+  '击球落点控制 Placement control'
+];
+const SUGGESTION_OPTIONS = [
+  '击球点再提前 Earlier contact point',
+  '击球后回位要快 Faster recovery',
+  '抛球要更稳定 More consistent toss',
+  '主动上网意识 Net play initiative',
+  '多球回合能力 Rally endurance',
+  '比赛实战经验 Match experience',
+  '体能耐力训练 Endurance training',
+  '击球力度控制 Power regulation',
+  '注意力集中 Focus maintenance'
+];
+const WEAK_CATS = {
+  '技术短板 Technical': ['击球点过早/过晚 Timing issues','击球力度控制 Difficulty controlling power','抛球不稳定 Inconsistent toss','握拍方式不对 Wrong grip','击球落点不精准 Inconsistent placement'],
+  '动作规范 Mechanics': ['引拍幅度不够 Short backswing','随挥不完整 No follow-through','重心没转移 Poor weight transfer','击球时身体僵硬 Body tension'],
+  '步伐与体能 Footwork & Fitness': ['启动慢 Slow first step','回位慢 Slow recovery','横向移动弱 Weak lateral movement','耐力不足 Low endurance'],
+  '训练态度 Attitude': ['注意力不集中 Lack of focus','怕失误不敢打 Afraid of errors','缺乏比赛意识 No tactical awareness','抗压能力弱 Poor pressure response']
+};
+const CLASS_OPTIONS = ['⬆️ 升级 Upgrade','➡️ 留原班 Stay','⬇️ 降阶 Adjust / Downgrade'];
+
+const STORAGE_KEY = 'tennis_assessment_v4';
+let db = { students: [] };
+let currentStudentId = null;
+let currentAssessmentId = null;
+let editingRecord = null;
+let recordedAudio = null;
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      db = (parsed && parsed.students) ? parsed : { students: [] };
+      db.students.forEach(s => {
+        if (!s) return;
+        if (!s.assessments) s.assessments = [];
+        if (!s.id) s.id = 's_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+        s.assessments.forEach(a => {
+          if (!a) return;
+          if (!a.scores || typeof a.scores !== 'object') a.scores = {};
+          SKILL_KEYS.forEach(k => {
+            if (typeof a.scores[k] !== 'number') a.scores[k] = 0;
+          });
+          if (a.highlights && typeof a.highlights === 'string') a.highlights = a.highlights ? [a.highlights] : [];
+          if (!Array.isArray(a.highlights)) a.highlights = [];
+          if (a.suggestions && typeof a.suggestions === 'string') a.suggestions = a.suggestions ? [a.suggestions] : [];
+          if (!Array.isArray(a.suggestions)) a.suggestions = [];
+          if (!a.weakAreas || typeof a.weakAreas !== 'object') a.weakAreas = {};
+          // 班级适配迁移：旧的单值字符串 -> 数组
+          if (a.classRecommendation && !a.classRecommendations) {
+            a.classRecommendations = [a.classRecommendation];
+            delete a.classRecommendation;
+          }
+          if (!Array.isArray(a.classRecommendations)) a.classRecommendations = [];
+        });
+      });
+    }
+    if (!db.students || !db.students.length) {
+      db = seedData();
+    }
+    saveDB();
+  } catch (e) {
+    console.error('load error', e);
+    db = seedData();
+    saveDB();
+  }
+}
+
+function seedData() {
+  const d1 = '2026-05-07';
+  const d2 = '2026-06-29';
+  return {
+    students: [
+      {
+        id: 's_demo1', name: '小明', age: '7-9岁', assessments: [
+          { id: 'a_demo1', date: d1, period: '2026 Q1',
+            scores: {forehand:2, backhand:2, serve:1, return:1, volley:1, overhead:0, footwork:2, anticipation:2, matchIq:1, endurance:2, focus:3},
+            highlights: ['移动更积极 Movement more active'],
+            suggestions: ['击球点再提前 Earlier contact point'],
+            weakAreas: { '技术短板 Technical': ['抛球不稳定 Inconsistent toss'] },
+            classRecommendations: ['⬆️ 升级 Upgrade'],
+            transcript: '小明本周期训练态度很认真，击球稳定性有提升，建议多练接发球。'
+          },
+          { id: 'a_demo2', date: d2, period: '2026 Q2',
+            scores: {forehand:3, backhand:3, serve:2, return:2, volley:2, overhead:1, footwork:3, anticipation:3, matchIq:2, endurance:3, focus:4},
+            highlights: ['击球稳定性提升 Stroke stability improved','移动更积极 Movement more active','战术意识增强 Tactical awareness'],
+            suggestions: ['击球点再提前 Earlier contact point','比赛实战经验 Match experience'],
+            weakAreas: { '技术短板 Technical': ['抛球不稳定 Inconsistent toss','击球落点不精准 Inconsistent placement'], '动作规范 Mechanics': ['引拍幅度不够 Short backswing'] },
+            classRecommendations: ['⬆️ 升级 Upgrade'],
+            transcript: '本周期进步明显，发球动作更完整，专注度也提升了，可以尝试小比赛。'
+          }
+        ]
+      },
+      {
+        id: 's_demo2', name: '小红', age: '10-12岁', assessments: [
+          { id: 'a_demo3', date: d1, period: '2026 Q1',
+            scores: {forehand:3, backhand:3, serve:3, return:2, volley:2, overhead:2, footwork:3, anticipation:3, matchIq:2, endurance:3, focus:3},
+            highlights: ['击球力度有进步 Power control improved'],
+            suggestions: ['主动上网意识 Net play initiative'],
+            weakAreas: { '步伐与体能 Footwork & Fitness': ['横向移动弱 Weak lateral movement'] },
+            classRecommendations: ['➡️ 留原班 Stay']
+          },
+          { id: 'a_demo4', date: d2, period: '2026 Q2',
+            scores: {forehand:4, backhand:4, serve:4, return:3, volley:3, overhead:3, footwork:4, anticipation:3, matchIq:3, endurance:3, focus:4},
+            highlights: ['击球稳定性提升 Stroke stability improved','步法灵活性 Footwork agility','抗压能力提升 Composure under pressure'],
+            suggestions: ['比赛实战经验 Match experience','击球力度控制 Power regulation'],
+            weakAreas: { '动作规范 Mechanics': ['随挥不完整 No follow-through'] },
+            classRecommendations: ['⬆️ 升级 Upgrade','➡️ 留原班 Stay']
+          }
+        ]
+      }
+    ]
+  };
+}
+
+function saveDB() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e) { console.error('save err', e); }
+}
+
+function render() {
+  renderStudentSelector();
+  renderTimeline();
+  renderReport();
+}
+
+function renderStudentSelector() {
+  const wrap = document.getElementById('studentSelector');
+  if (!db.students.length) { wrap.innerHTML = '<div class="empty">暂无学员，点"+ 新建评估"开始</div>'; return; }
+  let html = '<div class="section-title">学员列表</div><div class="chips">';
+  db.students.forEach(s => {
+    const active = s.id === currentStudentId ? 'selected' : '';
+    html += `<span class="chip ${active}" data-stuid="${s.id}">${s.name}</span>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-stuid]').forEach(el => {
+    el.onclick = () => selectStudent(el.dataset.stuid);
+  });
+}
+
+function renderTimeline() {
+  const wrap = document.getElementById('timeline');
+  const stu = db.students.find(s => s.id === currentStudentId);
+  if (!stu || !stu.assessments.length) { wrap.innerHTML = ''; return; }
+  let html = '';
+  stu.assessments.slice().reverse().forEach(a => {
+    const active = a.id === currentAssessmentId ? 'active' : '';
+    html += `<div class="timeline-item ${active}" data-aid="${a.id}">${a.period || ''} · ${a.date}</div>`;
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-aid]').forEach(el => {
+    el.onclick = () => selectAssessment(el.dataset.aid);
+  });
+}
+
+function selectStudent(id) {
+  currentStudentId = id;
+  const stu = db.students.find(s => s.id === id);
+  if (stu && stu.assessments.length) currentAssessmentId = stu.assessments[stu.assessments.length-1].id;
+  else currentAssessmentId = null;
+  render();
+}
+
+function selectAssessment(id) {
+  currentAssessmentId = id;
+  render();
+}
+
+function getCurrentReport() {
+  const stu = db.students.find(s => s.id === currentStudentId);
+  if (!stu) return null;
+  const a = (stu.assessments || []).find(x => x.id === currentAssessmentId);
+  if (!a) return null;
+  const idx = stu.assessments.findIndex(x => x.id === a.id);
+  const prev = idx > 0 ? stu.assessments[idx-1] : null;
+  return { stu, current: a, prev };
+}
+
+function renderReport() {
+  const r = getCurrentReport();
+  if (!r) {
+    document.getElementById('reportCard').innerHTML = '<div class="empty">请选择学员和评估记录</div>';
+    document.getElementById('scoresCard').style.display = 'none';
+    document.getElementById('highlightsCard').style.display = 'none';
+    document.getElementById('suggestionsCard').style.display = 'none';
+    document.getElementById('weakCard').style.display = 'none';
+    document.getElementById('classCard').style.display = 'none';
+    document.getElementById('voiceCard').style.display = 'none';
+    return;
+  }
+  const { stu, current: a, prev } = r;
+  document.getElementById('reportCard').innerHTML = `
+    <h2>学员信息 <span class="en">Student Info</span></h2>
+    <div class="info-row"><span class="label">姓名 Name</span><span class="value">${stu.name}</span></div>
+    <div class="info-row"><span class="label">年龄段 Age</span><span class="value">${stu.age}</span></div>
+    <div class="info-row"><span class="label">评估周期 Period</span><span class="value">${a.period || '-'}</span></div>
+    <div class="info-row"><span class="label">评估日期 Date</span><span class="value">${a.date}</span></div>
+  `;
+  document.getElementById('scoresCard').style.display = '';
+  const validScores = SKILL_KEYS.map(k => a.scores[k]).filter(s => s > 0);
+  const avg = validScores.length ? (validScores.reduce((s,v)=>s+v,0)/validScores.length).toFixed(1) : '0';
+  document.getElementById('avgScore').textContent = '均分 ' + avg;
+  drawRadar(a.scores, prev ? prev.scores : null);
+  drawScoreList(a.scores, prev ? prev.scores : null);
+  if (a.highlights && a.highlights.length) {
+    document.getElementById('highlightsCard').style.display = '';
+    document.getElementById('highlightsChips').innerHTML = a.highlights.map(h => `<span class="chip selected">${h}</span>`).join('');
+  } else {
+    document.getElementById('highlightsCard').style.display = 'none';
+  }
+  if (a.suggestions && a.suggestions.length) {
+    document.getElementById('suggestionsCard').style.display = '';
+    document.getElementById('suggestionsChips').innerHTML = a.suggestions.map(s => `<span class="chip selected" style="background:#ff6b35;border-color:#ff6b35;">${s}</span>`).join('');
+  } else {
+    document.getElementById('suggestionsCard').style.display = 'none';
+  }
+  const hasWeak = a.weakAreas && Object.values(a.weakAreas).some(arr => arr && arr.length);
+  if (hasWeak) {
+    document.getElementById('weakCard').style.display = '';
+    let html = '';
+    Object.entries(a.weakAreas).forEach(([cat, items]) => {
+      if (items && items.length) {
+        html += `<div class="weak-cat"><div class="title">${cat}</div><div class="chips">${items.map(i => `<span class="chip warn selected">${i}</span>`).join('')}</div></div>`;
+      }
+    });
+    document.getElementById('weakList').innerHTML = html;
+  } else {
+    document.getElementById('weakCard').style.display = 'none';
+  }
+  if (a.classRecommendations && a.classRecommendations.length) {
+    document.getElementById('classCard').style.display = '';
+    document.getElementById('classText').innerHTML = a.classRecommendations.map(c => `<span class="chip selected" style="margin:2px;">${c}</span>`).join('');
+  } else {
+    document.getElementById('classCard').style.display = 'none';
+  }
+  if (a.audioBase64 || a.transcript) {
+    document.getElementById('voiceCard').style.display = '';
+    if (a.audioBase64) {
+      document.getElementById('voiceWrap').innerHTML = `<div style="font-size:12px;color:#7f8c8d;margin-bottom:4px;">🎙️ 教练语音评语</div><audio controls src="data:${a.audioType||'audio/webm'};base64,${a.audioBase64}"></audio>`;
+    } else {
+      document.getElementById('voiceWrap').innerHTML = '';
+    }
+    document.getElementById('transcriptText').textContent = a.transcript || '';
+  } else {
+    document.getElementById('voiceCard').style.display = 'none';
+  }
+}
+
+function drawRadar(scores, prevScores) {
+  const svg = document.getElementById('radarSvg');
+  const cx = 140, cy = 140, R = 110;
+  const N = SKILL_KEYS.length;
+  const angle = (i) => -Math.PI/2 + i * 2*Math.PI/N;
+  let points = '';
+  SKILL_KEYS.forEach((k, i) => {
+    const v = (scores[k] || 0) / 5;
+    const x = cx + Math.cos(angle(i)) * R * v;
+    const y = cy + Math.sin(angle(i)) * R * v;
+    points += `${x},${y} `;
+  });
+  let prevPoints = '';
+  if (prevScores) {
+    SKILL_KEYS.forEach((k, i) => {
+      const v = (prevScores[k] || 0) / 5;
+      const x = cx + Math.cos(angle(i)) * R * v;
+      const y = cy + Math.sin(angle(i)) * R * v;
+      prevPoints += `${x},${y} `;
+    });
+  }
+  let grid = '';
+  for (let level = 1; level <= 5; level++) {
+    const r = R * level/5;
+    let pts = '';
+    for (let i = 0; i < N; i++) {
+      pts += `${cx + Math.cos(angle(i))*r},${cy + Math.sin(angle(i))*r} `;
+    }
+    grid += `<polygon points="${pts}" fill="none" stroke="#ecf0f1" stroke-width="1"/>`;
+  }
+  let axes = '';
+  for (let i = 0; i < N; i++) {
+    const x = cx + Math.cos(angle(i)) * R;
+    const y = cy + Math.sin(angle(i)) * R;
+    axes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#ecf0f1" stroke-width="1"/>`;
+    const lx = cx + Math.cos(angle(i)) * (R + 14);
+    const ly = cy + Math.sin(angle(i)) * (R + 14);
+    axes += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="10" fill="#7f8c8d" dominant-baseline="middle">${SKILL_LABELS[SKILL_KEYS[i]][0]}</text>`;
+  }
+  svg.innerHTML = grid + axes +
+    (prevPoints ? `<polygon points="${prevPoints}" fill="#bdc3c7" fill-opacity="0.3" stroke="#95a5a6" stroke-width="1" stroke-dasharray="3,2"/>` : '') +
+    `<polygon points="${points}" fill="#2d8659" fill-opacity="0.4" stroke="#2d8659" stroke-width="2"/>`;
+}
+
+function drawScoreList(scores, prevScores) {
+  const wrap = document.getElementById('scoreList');
+  let html = '';
+  SKILL_KEYS.forEach(k => {
+    const cur = scores[k] || 0;
+    const prev = prevScores ? (prevScores[k] || 0) : null;
+    const isZero = cur === 0;
+    const curW = isZero ? 0 : cur * 20;
+    const prevW = prev !== null ? prev * 20 : 0;
+    let delta = '';
+    if (prev !== null && !isZero && prev > 0) {
+      const d = cur - prev;
+      delta = `<span class="delta">${d>0?'+':''}${d}</span>`;
+    } else if (isZero) {
+      delta = `<span class="delta" style="color:#95a5a6">待评估</span>`;
+    }
+    html += `<div class="score-row">
+      <div class="name">${SKILL_LABELS[k][0]}<span class="en">${SKILL_LABELS[k][1]}</span></div>
+      <div class="bar-wrap">
+        ${prev !== null ? `<div class="bar"><div class="fill prev" style="width:${prevW}%"></div></div>` : ''}
+        <div class="bar"><div class="fill" style="width:${curW}%"></div></div>
+      </div>
+      <div class="score-num">${isZero?'-':cur}${delta}</div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+// ===== 录入弹窗 =====
+function openModal() {
+  editingRecord = {
+    name: '', age: '7-9岁', date: new Date().toISOString().split('T')[0], period: '',
+    scores: Object.fromEntries(SKILL_KEYS.map(k => [k, 0])),
+    highlights: [], suggestions: [], weakAreas: {}, classRecommendations: [],
+    audioBase64: '', audioType: '', transcript: ''
+  };
+  recordedAudio = null;
+  document.getElementById('inName').value = '';
+  document.getElementById('inAge').value = '7-9岁';
+  document.getElementById('inDate').value = editingRecord.date;
+  document.getElementById('inPeriod').value = '';
+  document.getElementById('inText').value = '';
+  document.getElementById('recordStatus').textContent = '';
+  document.getElementById('recordStatus').className = 'rec-status';
+  document.getElementById('audioPreview').style.display = 'none';
+  document.getElementById('audioPreview').src = '';
+  document.getElementById('btnPlayVoice').style.display = 'none';
+  document.getElementById('btnDeleteVoice').style.display = 'none';
+  document.getElementById('btnRecord').textContent = '开始录音';
+  document.getElementById('btnRecord').disabled = false;
+  renderScoreInputs();
+  renderWeakInputs();
+  renderHighlightsInput();
+  renderSuggestionsInput();
+  renderClassInput();
+  document.getElementById('modalTitle').textContent = '新建评估';
+  document.getElementById('modalMask').classList.add('show');
+  updateProgress();
+}
+
+function closeModal() {
+  document.getElementById('modalMask').classList.remove('show');
+  stopRecordingCleanup(true);
+}
+
+// 用事件委托 + className 切换，避免 DOM 重建
+function renderScoreInputs() {
+  const wrap = document.getElementById('scoreInputs');
+  let html = '';
+  SKILL_KEYS.forEach(k => {
+    let dots = '';
+    for (let i = 1; i <= 5; i++) {
+      dots += `<div class="dot" data-skill="${k}" data-score="${i}">${i}</div>`;
+    }
+    html += `<div class="score-row">
+      <div class="name">${SKILL_LABELS[k][0]}<span class="en">${SKILL_LABELS[k][1]}</span></div>
+      <div class="dots" data-skillrow="${k}">${dots}</div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+  // 绑定
+  wrap.querySelectorAll('.dot').forEach(el => {
+    el.onclick = () => {
+      const k = el.dataset.skill;
+      const v = parseInt(el.dataset.score);
+      editingRecord.scores[k] = v;
+      const row = wrap.querySelector(`[data-skillrow="${k}"]`);
+      row.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+      el.classList.add('active');
+      updateProgress();
+    };
+  });
+  // 应用已有值
+  SKILL_KEYS.forEach(k => {
+    const v = editingRecord.scores[k] || 0;
+    if (v > 0) {
+      const row = wrap.querySelector(`[data-skillrow="${k}"]`);
+      if (row) {
+        const dot = row.querySelector(`.dot[data-score="${v}"]`);
+        if (dot) dot.classList.add('active');
+      }
+    }
+  });
+}
+
+function renderWeakInputs() {
+  const wrap = document.getElementById('weakInputs');
+  let html = '';
+  Object.entries(WEAK_CATS).forEach(([cat, items]) => {
+    html += `<div class="weak-cat"><div class="title">${cat}</div><div class="chips" data-weakcat="${cat}">`;
+    items.forEach(item => {
+      html += `<span class="chip warn" data-weakitem="${item.replace(/"/g,'&quot;')}">${item}</span>`;
+    });
+    html += '</div></div>';
+  });
+  wrap.innerHTML = html;
+  // 绑定
+  wrap.querySelectorAll('[data-weakcat]').forEach(catEl => {
+    const cat = catEl.dataset.weakcat;
+    catEl.querySelectorAll('[data-weakitem]').forEach(itemEl => {
+      const item = itemEl.dataset.weakitem;
+      itemEl.onclick = () => toggleWeak(cat, item, itemEl);
+    });
+  });
+  // 应用已有值
+  applyWeakHighlight();
+}
+
+function applyWeakHighlight() {
+  Object.entries(editingRecord.weakAreas).forEach(([cat, items]) => {
+    const catEl = document.querySelector(`[data-weakcat="${cat}"]`);
+    if (!catEl) return;
+    items.forEach(item => {
+      const itemEl = catEl.querySelector(`[data-weakitem="${item.replace(/"/g,'&quot;')}"]`);
+      if (itemEl) itemEl.classList.add('selected');
+    });
+  });
+}
+
+function toggleWeak(cat, item, itemEl) {
+  if (!editingRecord.weakAreas[cat]) editingRecord.weakAreas[cat] = [];
+  const arr = editingRecord.weakAreas[cat];
+  const idx = arr.indexOf(item);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+    itemEl.classList.remove('selected');
+  } else {
+    if (arr.length >= 2) {
+      flashRecordStatus('每类最多选 2 个');
+      return;
+    }
+    arr.push(item);
+    itemEl.classList.add('selected');
+  }
+  updateProgress();
+}
+
+function renderHighlightsInput() {
+  const wrap = document.getElementById('highlightsInput');
+  let html = '';
+  HIGHLIGHT_OPTIONS.forEach(opt => {
+    html += `<span class="chip" data-h="${opt}">${opt}</span>`;
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-h]').forEach(el => {
+    el.onclick = () => toggleHighlight(el.dataset.h, el);
+  });
+  applyHighlightState();
+}
+
+function applyHighlightState() {
+  const wrap = document.getElementById('highlightsInput');
+  const full = editingRecord.highlights.length >= 3;
+  wrap.querySelectorAll('[data-h]').forEach(el => {
+    const sel = editingRecord.highlights.includes(el.dataset.h);
+    el.classList.toggle('selected', sel);
+    el.classList.toggle('disabled', full && !sel);
+  });
+}
+
+function toggleHighlight(opt, el) {
+  const arr = editingRecord.highlights;
+  const idx = arr.indexOf(opt);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+  } else {
+    if (arr.length >= 3) {
+      flashRecordStatus('亮点最多选 3 个');
+      return;
+    }
+    arr.push(opt);
+  }
+  applyHighlightState();
+  updateProgress();
+}
+
+function renderSuggestionsInput() {
+  const wrap = document.getElementById('suggestionsInput');
+  let html = '';
+  SUGGESTION_OPTIONS.forEach(opt => {
+    html += `<span class="chip warn" data-s="${opt}">${opt}</span>`;
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-s]').forEach(el => {
+    el.onclick = () => toggleSuggestion(el.dataset.s, el);
+  });
+  applySuggestionState();
+}
+
+function applySuggestionState() {
+  const wrap = document.getElementById('suggestionsInput');
+  const full = editingRecord.suggestions.length >= 2;
+  wrap.querySelectorAll('[data-s]').forEach(el => {
+    const sel = editingRecord.suggestions.includes(el.dataset.s);
+    el.classList.toggle('selected', sel);
+    el.classList.toggle('disabled', full && !sel);
+  });
+}
+
+function toggleSuggestion(opt, el) {
+  const arr = editingRecord.suggestions;
+  const idx = arr.indexOf(opt);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+  } else {
+    if (arr.length >= 2) {
+      flashRecordStatus('建议最多选 2 个');
+      return;
+    }
+    arr.push(opt);
+  }
+  applySuggestionState();
+  updateProgress();
+}
+
+function renderClassInput() {
+  const wrap = document.getElementById('classInput');
+  let html = '';
+  CLASS_OPTIONS.forEach(opt => {
+    html += `<span class="chip" data-c="${opt}">${opt}</span>`;
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-c]').forEach(el => {
+    el.onclick = () => toggleClass(el.dataset.c, el);
+  });
+  applyClassState();
+}
+
+function applyClassState() {
+  const wrap = document.getElementById('classInput');
+  const full = editingRecord.classRecommendations.length >= 3;
+  wrap.querySelectorAll('[data-c]').forEach(el => {
+    const sel = editingRecord.classRecommendations.includes(el.dataset.c);
+    el.classList.toggle('selected', sel);
+    el.classList.toggle('disabled', full && !sel);
+  });
+}
+
+function toggleClass(opt, el) {
+  const arr = editingRecord.classRecommendations;
+  const idx = arr.indexOf(opt);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+  } else {
+    if (arr.length >= 3) {
+      flashRecordStatus('班级建议最多选 3 个');
+      return;
+    }
+    arr.push(opt);
+  }
+  applyClassState();
+  updateProgress();
+}
+
+function updateProgress() {
+  let done = 0;
+  if (document.getElementById('inName').value) done++;
+  if (Object.values(editingRecord.scores).some(v => v > 0)) done++;
+  if (Object.values(editingRecord.weakAreas).some(arr => arr && arr.length)) done++;
+  if (editingRecord.highlights.length) done++;
+  if (editingRecord.suggestions.length) done++;
+  if (editingRecord.classRecommendations.length) done++;
+  document.getElementById('progressText').textContent = `完成 ${done}/6`;
+  document.getElementById('progressFill').style.width = (done/6*100) + '%';
+}
+
+function flashRecordStatus(msg) {
+  const el = document.getElementById('recordStatus');
+  el.textContent = '⚠️ ' + msg;
+  setTimeout(() => { el.textContent = ''; }, 2000);
+}
+
+// ===== 语音录制 =====
+let mediaRecorder = null;
+let recordStartTime = 0;
+let recordTimer = null;
+let recordChunks = [];
+let recordStream = null;
+let recordTickInt = null;
+
+const btnRecord = document.getElementById('btnRecord');
+const recordStatus = document.getElementById('recordStatus');
+const audioPreview = document.getElementById('audioPreview');
+const btnPlayVoice = document.getElementById('btnPlayVoice');
+const btnDeleteVoice = document.getElementById('btnDeleteVoice');
+
+btnRecord.onclick = async () => {
+  if (btnRecord.textContent === '停止录音') {
+    stopRecordingCleanup(false);
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+    recordStatus.textContent = '❌ 当前浏览器不支持录音，请用文字输入评语';
+    return;
+  }
+  try {
+    recordStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordChunks = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
+                     MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+    mediaRecorder = mimeType ? new MediaRecorder(recordStream, { mimeType }) : new MediaRecorder(recordStream);
+    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) recordChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      if (!recordChunks.length) { stopStream(); return; }
+      const type = mediaRecorder.mimeType || 'audio/webm';
+      const blob = new Blob(recordChunks, { type });
+      const reader = new FileReader();
+      reader.onload = () => {
+        recordedAudio = { base64: reader.result.split(',')[1], type };
+        audioPreview.src = reader.result;
+        audioPreview.style.display = 'block';
+        btnPlayVoice.style.display = 'inline-block';
+        btnDeleteVoice.style.display = 'inline-block';
+        recordStatus.className = 'rec-status';
+        recordStatus.textContent = `✓ 录音完成 (${(blob.size/1024).toFixed(1)}KB)`;
+      };
+      reader.readAsDataURL(blob);
+      stopStream();
+    };
+    mediaRecorder.onerror = (e) => {
+      recordStatus.textContent = '❌ 录音错误：' + (e.error?.name || 'unknown');
+      stopStream();
+    };
+    mediaRecorder.start();
+    recordStartTime = Date.now();
+    btnRecord.textContent = '停止录音';
+    recordStatus.className = 'rec-status live';
+    recordStatus.textContent = '🔴 录音中 0:00';
+    recordTimer = setTimeout(() => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        recordStatus.textContent = '⏱️ 30秒到，自动停止';
+        stopRecordingCleanup(false);
+      }
+    }, 30000);
+    recordTickInt = setInterval(() => {
+      if (!mediaRecorder || mediaRecorder.state !== 'recording') { clearInterval(recordTickInt); recordTickInt = null; return; }
+      const sec = Math.floor((Date.now() - recordStartTime) / 1000);
+      recordStatus.textContent = `🔴 录音中 ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+    }, 250);
+  } catch (e) {
+    recordStatus.textContent = '❌ 麦克风访问被拒：' + e.name + '（请在浏览器设置中允许）';
+    stopStream();
+  }
+};
+
+function stopRecordingCleanup(force) {
+  if (recordTickInt) { clearInterval(recordTickInt); recordTickInt = null; }
+  if (recordTimer) { clearTimeout(recordTimer); recordTimer = null; }
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    try { mediaRecorder.stop(); } catch(e) { console.error(e); }
+  } else {
+    btnRecord.textContent = '开始录音';
+    stopStream();
+  }
+}
+
+function stopStream() {
+  if (recordStream) { recordStream.getTracks().forEach(t => t.stop()); recordStream = null; }
+  btnRecord.textContent = '开始录音';
+  mediaRecorder = null;
+}
+
+btnDeleteVoice.onclick = () => {
+  recordedAudio = null;
+  audioPreview.style.display = 'none';
+  audioPreview.src = '';
+  btnPlayVoice.style.display = 'none';
+  btnDeleteVoice.style.display = 'none';
+  recordStatus.textContent = '';
+};
+
+btnPlayVoice.onclick = () => { if (audioPreview.src) audioPreview.play(); };
+
+// ===== 保存评估 =====
+function saveAssessment() {
+  const name = document.getElementById('inName').value.trim();
+  if (!name) { alert('请填写学员姓名'); return; }
+  if (!Object.values(editingRecord.scores).some(v => v > 0)) { alert('请至少给一项评分'); return; }
+  if (!editingRecord.classRecommendations.length) { alert('请选择班级适配建议'); return; }
+  editingRecord.name = name;
+  editingRecord.age = document.getElementById('inAge').value;
+  editingRecord.date = document.getElementById('inDate').value;
+  editingRecord.period = document.getElementById('inPeriod').value || editingRecord.date;
+  editingRecord.transcript = document.getElementById('inText').value;
+  if (recordedAudio) {
+    editingRecord.audioBase64 = recordedAudio.base64;
+    editingRecord.audioType = recordedAudio.type;
+  }
+  let stu = db.students.find(s => s.name === name);
+  if (!stu) {
+    stu = { id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2,5), name, assessments: [] };
+    db.students.push(stu);
+  }
+  const existingIdx = stu.assessments.findIndex(a => a.date === editingRecord.date);
+  const newA = Object.assign({ id: 'a_' + Date.now() + '_' + Math.random().toString(36).substr(2,5) }, editingRecord);
+  if (existingIdx >= 0) stu.assessments[existingIdx] = newA;
+  else stu.assessments.push(newA);
+  stu.assessments.sort((a,b) => a.date.localeCompare(b.date));
+  currentStudentId = stu.id;
+  currentAssessmentId = newA.id;
+  saveDB();
+  closeModal();
+  render();
+}
+
+document.getElementById('btnNew').onclick = openModal;
+document.getElementById('btnCancel').onclick = closeModal;
+document.getElementById('btnSave').onclick = saveAssessment;
+
+document.getElementById('btnShare').onclick = () => {
+  const r = getCurrentReport();
+  if (!r) { alert('请先选择学员和评估'); return; }
+  const token = generateShareToken();
+  const payload = buildParentSharePayload();
+  try { sessionStorage.setItem('share_' + token, JSON.stringify(payload)); } catch(e) { console.error(e); }
+  const shareUrl = location.origin + location.pathname + '?mode=parent&token=' + token;
+  showSharePanel(shareUrl, r);
+};
+
+// ===== 保存图片功能已删除（用户要求移除），下方 exportReportAsImage 保留为 dead code（无按钮触发）=====
+function btnSaveImg_removed_noop() { return; }
+function exportReportAsImage_removed_noop(r) { return; }
+
+function exportReportAsImage(r) {
+  const canvas = document.createElement('canvas');
+  const W = 800;
+  // 估算高度
+  let h = 100;
+  h += 11 * 22 + 30; // 评分
+  h += (r.current.highlights?.length || 0) * 20 + 40;
+  h += (r.current.suggestions?.length || 0) * 20 + 40;
+  if (r.current.weakAreas) Object.values(r.current.weakAreas).forEach(arr => { if (arr) h += arr.length * 20 + 30; });
+  if (r.current.transcript) h += 60;
+  h += 50;
+  const H = h;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  // 背景
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, W, H);
+  // 标题
+  ctx.fillStyle = '#1e5d3d';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('🎾 少儿网球学员评估报告', 30, 45);
+  ctx.font = '12px sans-serif';
+  ctx.fillStyle = '#95a5a6';
+  ctx.fillText('Kids Tennis Assessment Report', 30, 65);
+  // 学员信息
+  ctx.font = '14px sans-serif';
+  ctx.fillStyle = '#2c3e50';
+  let y = 100;
+  ctx.fillText(`姓名: ${r.stu.name}    年龄: ${r.stu.age}    周期: ${r.current.period || '-'}    日期: ${r.current.date}`, 30, y);
+  y += 22;
+  ctx.fillText(`班级建议: ${(r.current.classRecommendations || []).join('、') || '-'}`, 30, y);
+  y += 30;
+  // 11 项评分
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillStyle = '#1e5d3d';
+  ctx.fillText('11 项评分  (本次 vs 上次)', 30, y); y += 22;
+  ctx.font = '13px sans-serif';
+  ctx.fillStyle = '#2c3e50';
+  SKILL_KEYS.forEach(k => {
+    const cur = r.current.scores[k] || 0;
+    const prev = r.prev ? (r.prev.scores[k] || 0) : null;
+    const txt = cur === 0 ? `${SKILL_LABELS[k][0]}: 待评估` : `${SKILL_LABELS[k][0]}  本次 ${cur}/5${prev!==null && prev>0 ? `  (上次 ${prev})` : ''}`;
+    ctx.fillText(txt, 30, y);
+    // 双条
+    if (prev !== null && prev > 0) {
+      ctx.fillStyle = '#bdc3c7';
+      ctx.fillRect(420, y-9, 200, 6);
+      ctx.fillStyle = '#bdc3c7';
+      ctx.fillRect(420, y-9, 200*prev/5, 6);
+    }
+    ctx.fillStyle = '#ecf0f1';
+    ctx.fillRect(420, y-2, 200, 8);
+    ctx.fillStyle = '#2d8659';
+    if (cur > 0) ctx.fillRect(420, y-2, 200*cur/5, 8);
+    ctx.fillStyle = '#2c3e50';
+    y += 22;
+  });
+  y += 8;
+  if (r.current.highlights && r.current.highlights.length) {
+    ctx.fillStyle = '#1e5d3d';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('进步亮点', 30, y); y += 22;
+    ctx.font = '13px sans-serif';
+    ctx.fillStyle = '#2c3e50';
+    r.current.highlights.forEach(h => { ctx.fillText('• ' + h, 30, y); y += 20; });
+    y += 8;
+  }
+  if (r.current.suggestions && r.current.suggestions.length) {
+    ctx.fillStyle = '#ff6b35';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('重点建议', 30, y); y += 22;
+    ctx.font = '13px sans-serif';
+    ctx.fillStyle = '#2c3e50';
+    r.current.suggestions.forEach(s => { ctx.fillText('• ' + s, 30, y); y += 20; });
+    y += 8;
+  }
+  if (r.current.weakAreas) {
+    const hasAny = Object.values(r.current.weakAreas).some(a => a && a.length);
+    if (hasAny) {
+      ctx.fillStyle = '#e67e22';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText('薄弱问题', 30, y); y += 22;
+      ctx.font = '13px sans-serif';
+      ctx.fillStyle = '#2c3e50';
+      Object.entries(r.current.weakAreas).forEach(([cat, items]) => {
+        if (items && items.length) {
+          ctx.fillText(cat + ':', 30, y); y += 18;
+          items.forEach(i => { ctx.fillText('  - ' + i, 30, y); y += 18; });
+          y += 4;
+        }
+      });
+    }
+  }
+  if (r.current.transcript) {
+    ctx.fillStyle = '#1e5d3d';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('教练评语', 30, y); y += 22;
+    ctx.font = '13px sans-serif';
+    ctx.fillStyle = '#2c3e50';
+    const lines = wrapText(ctx, r.current.transcript, W - 60);
+    lines.forEach(l => { ctx.fillText(l, 30, y); y += 18; });
+    y += 8;
+  }
+  // 评语音频提示
+  if (r.current.audioBase64) {
+    ctx.fillStyle = '#7f8c8d';
+    ctx.font = 'italic 12px sans-serif';
+    ctx.fillText('🎙️ 含语音评语，请扫码查看 H5 完整版', 30, y);
+  }
+  // 导出
+  const fileName = `${r.stu.name}_评估报告_${r.current.date}.png`;
+  canvas.toBlob(blob => {
+    if (!blob) { alert('生成图片失败'); return; }
+    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      const file = new File([blob], fileName, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: '少儿网球评估' }).catch(() => downloadBlob(blob, fileName));
+      } else {
+        downloadBlob(blob, fileName);
+      }
+    } else {
+      downloadBlob(blob, fileName);
+    }
+  }, 'image/png');
+}
+
+function wrapText(ctx, text, maxW) {
+  const chars = text.split('');
+  const lines = [];
+  let line = '';
+  chars.forEach(c => {
+    if (ctx.measureText(line + c).width > maxW) { lines.push(line); line = c; }
+    else line += c;
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// 移动端兼容：jsPDF + html2canvas 真生成 .pdf blob，移动端走 navigator.share
+document.getElementById('btnExportPdf').onclick = async () => {
+  const r = getCurrentReport();
+  if (!r) { alert('请先选择学员和评估'); return; }
+  const btn = document.getElementById('btnExportPdf');
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = '生成中…';
+  try {
+    // 截取整个 .app 区域作为 PDF 内容
+    const target = document.querySelector('.app') || document.body;
+    // 截图前临时隐藏操作按钮和时间轴，避免出现在 PDF 里
+    const topActions = document.getElementById('topActions');
+    const timelineEl = document.getElementById('timeline');
+    const hideEls = [topActions, timelineEl].filter(Boolean);
+    const prevDisplay = hideEls.map(e => e.style.display);
+    hideEls.forEach(e => e.style.display = 'none');
+    await new Promise(res => setTimeout(res, 400)); // 等 SVG 渲染
+    const canvas = await html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+    hideEls.forEach((e, i) => e.style.display = prevDisplay[i]);
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    // A4 竖版 210x297mm
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pageW = 210, pageH = 297;
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    if (imgH <= pageH) {
+      pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+    } else {
+      // 多页
+      let remaining = imgH;
+      let y = 0;
+      while (remaining > 0) {
+        pdf.addImage(imgData, 'JPEG', 0, -y, imgW, imgH);
+        remaining -= pageH;
+        y += pageH;
+        if (remaining > 0) pdf.addPage();
+      }
+    }
+    const fileName = `${r.stu.name}_评估报告_${r.current.date}.pdf`;
+    const pdfBlob = pdf.output('blob');
+    // 移动端：navigator.share 优先
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile && navigator.share && navigator.canShare) {
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: `${r.stu.name} 的评估报告` });
+          return; // 分享成功，结束
+        } catch (e) { /* 用户取消分享，降级到下载 */ }
+      }
+    }
+    // 桌面端 / 不支持 share 的浏览器：直接下载
+    const url = URL.createObjectURL(pdfBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    console.error('PDF 生成失败:', err);
+    alert('PDF 生成失败：' + (err.message || err) + '\n\n如使用微信内置浏览器，请点击右上角"在浏览器中打开"。');
+  } finally {
+    btn.disabled = false; btn.textContent = orig;
+  }
+};
+
+// ===== 家长端查看（仅显示一份报告）=====
+function tryRenderParentView() {
+  const params = new URLSearchParams(location.search);
+  const mode = params.get('mode');
+  const token = params.get('token');
+  if (mode !== 'parent' || !token) return false;
+  let payload = null;
+  try { payload = JSON.parse(sessionStorage.getItem('share_' + token) || 'null'); } catch(e) {}
+  if (!payload) {
+    const reportCard = document.getElementById('reportCard');
+    if (reportCard) {
+      reportCard.innerHTML = '<div class="empty">链接已失效或被清除<br><br><span style="font-size:12px;color:#95a5a6;">请向教练重新索取分享链接</span></div>';
+    }
+    const topActions = document.getElementById('topActions');
+    if (topActions) topActions.style.display = 'none';
+    const studentSel = document.getElementById('studentSelector');
+    if (studentSel) studentSel.style.display = 'none';
+    const timelineEl = document.getElementById('timeline');
+    if (timelineEl) timelineEl.style.display = 'none';
+    return true;
+  }
+  const topActions = document.getElementById('topActions');
+  if (topActions) topActions.style.display = 'none';
+  const studentSel = document.getElementById('studentSelector');
+  if (studentSel) studentSel.style.display = 'none';
+  const timelineEl = document.getElementById('timeline');
+  if (timelineEl) timelineEl.style.display = 'none';
+  const fakeStu = { id: 'parent_view', name: payload.stuName, age: payload.stuAge };
+  const report = { stu: fakeStu, current: payload.a, prev: payload.prev };
+  renderReportForParent(report);
+  const back = document.createElement('div');
+  back.style.cssText = 'text-align:center;padding:12px;font-size:12px;color:#7f8c8d;';
+  back.innerHTML = '👨‍👩‍👧 家长查看模式 · 分享给您的报告';
+  const app = document.querySelector('.app');
+  if (app) app.appendChild(back);
+  return true;
+}
+
+function renderReportForParent(r) {
+  const { stu, current: a, prev } = r;
+  document.getElementById('reportCard').innerHTML =
+    '<h2>学员信息 <span class="en">Student Info</span></h2>' +
+    '<div class="info-row"><span class="label">姓名 Name</span><span class="value">' + stu.name + '</span></div>' +
+    '<div class="info-row"><span class="label">年龄段 Age</span><span class="value">' + stu.age + '</span></div>' +
+    '<div class="info-row"><span class="label">评估周期 Period</span><span class="value">' + (a.period || '-') + '</span></div>' +
+    '<div class="info-row"><span class="label">评估日期 Date</span><span class="value">' + a.date + '</span></div>';
+  document.getElementById('scoresCard').style.display = '';
+  const validScores = SKILL_KEYS.map(k => a.scores[k]).filter(s => s > 0);
+  const avg = validScores.length ? (validScores.reduce((s,v)=>s+v,0)/validScores.length).toFixed(1) : '0';
+  document.getElementById('avgScore').textContent = '均分 ' + avg;
+  drawRadar(a.scores, prev ? prev.scores : null);
+  drawScoreList(a.scores, prev ? prev.scores : null);
+  if (a.highlights && a.highlights.length) {
+    document.getElementById('highlightsCard').style.display = '';
+    document.getElementById('highlightsChips').innerHTML = a.highlights.map(h => '<span class="chip selected">' + h + '</span>').join('');
+  } else { document.getElementById('highlightsCard').style.display = 'none'; }
+  if (a.suggestions && a.suggestions.length) {
+    document.getElementById('suggestionsCard').style.display = '';
+    document.getElementById('suggestionsChips').innerHTML = a.suggestions.map(s => '<span class="chip selected" style="background:#ff6b35;border-color:#ff6b35;">' + s + '</span>').join('');
+  } else { document.getElementById('suggestionsCard').style.display = 'none'; }
+  const hasWeak = a.weakAreas && Object.values(a.weakAreas).some(arr => arr && arr.length);
+  if (hasWeak) {
+    document.getElementById('weakCard').style.display = '';
+    let html = '';
+    Object.entries(a.weakAreas).forEach(([cat, items]) => {
+      if (items && items.length) {
+        html += '<div class="weak-cat"><div class="title">' + cat + '</div><div class="chips">' + items.map(i => '<span class="chip warn selected">' + i + '</span>').join('') + '</div></div>';
+      }
+    });
+    document.getElementById('weakList').innerHTML = html;
+  } else { document.getElementById('weakCard').style.display = 'none'; }
+  if (a.classRecommendations && a.classRecommendations.length) {
+    document.getElementById('classCard').style.display = '';
+    document.getElementById('classText').innerHTML = a.classRecommendations.map(c => '<span class="chip selected" style="margin:2px;">' + c + '</span>').join('');
+  } else { document.getElementById('classCard').style.display = 'none'; }
+  if (a.audioBase64 || a.transcript) {
+    document.getElementById('voiceCard').style.display = '';
+    if (a.audioBase64) {
+      document.getElementById('voiceWrap').innerHTML = '<div style="font-size:12px;color:#7f8c8d;margin-bottom:4px;">🎙️ 教练语音评语</div><audio controls src="data:' + (a.audioType || 'audio/webm') + ';base64,' + a.audioBase64 + '"></audio>';
+    } else { document.getElementById('voiceWrap').innerHTML = ''; }
+    document.getElementById('transcriptText').textContent = a.transcript || '';
+  } else { document.getElementById('voiceCard').style.display = 'none'; }
+}
+
+function generateShareToken() {
+  return 'tk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function buildParentSharePayload() {
+  const r = getCurrentReport();
+  if (!r) return null;
+  return {
+    stuName: r.stu.name,
+    stuAge: r.stu.age,
+    a: r.current,
+    prev: r.prev,
+    sharedAt: new Date().toISOString()
+  };
+}
+
+function showSharePanel(url, r) {
+  const mask = document.createElement('div');
+  mask.className = 'modal-mask show';
+  mask.style.cssText = 'z-index:200;align-items:center;';
+  mask.innerHTML =
+    '<div class="modal" style="max-width:480px;border-radius:16px;">' +
+      '<h3>📤 分享给家长</h3>' +
+      '<div style="font-size:12px;color:#7f8c8d;margin-bottom:12px;">家长打开链接后只能看到 ' + r.stu.name + ' 的报告，看不到其他学员或教练端功能。</div>' +
+      '<div class="form-group">' +
+        '<label>分享链接</label>' +
+        '<textarea readonly id="shareUrlText" style="font-size:11px;min-height:60px;">' + url + '</textarea>' +
+      '</div>' +
+      '<div style="background:#f8f9fa;padding:10px;border-radius:8px;margin:8px 0;font-size:12px;color:#7f8c8d;">💡 提示：分享链接存于本设备的 sessionStorage，换设备/浏览器会失效。如需长期链接，建议用 PDF 导出后发到家长群。</div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn-secondary" id="btnCloseShare">关闭</button>' +
+        '<button class="btn-secondary" id="btnCopyShare">复制链接</button>' +
+        '<button class="btn-primary" id="btnNativeShare">系统分享</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(mask);
+  document.getElementById('btnCloseShare').onclick = () => mask.remove();
+  document.getElementById('btnCopyShare').onclick = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert('链接已复制');
+      } else {
+        const ta = document.getElementById('shareUrlText');
+        ta.select();
+        document.execCommand('copy');
+        alert('链接已复制');
+      }
+    } catch(e) { prompt('请手动复制', url); }
+  };
+  document.getElementById('btnNativeShare').onclick = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: r.stu.name + ' 的网球评估报告', url }); } catch(e) {}
+    } else {
+      alert('当前浏览器不支持系统分享，请用复制链接');
+    }
+  };
+  mask.onclick = (e) => { if (e.target === mask) mask.remove(); };
+}
+
+loadDB();
+// 优先检查家长查看模式
+if (tryRenderParentView()) {
+  // 家长模式：tryRenderParentView 已经渲染完毕，不进入教练端
+} else {
+  if (db.students.length) {
+    currentStudentId = db.students[0].id;
+    const stu = db.students[0];
+    if (stu.assessments.length) currentAssessmentId = stu.assessments[stu.assessments.length-1].id;
+  }
+  document.getElementById('inDate').value = new Date().toISOString().split('T')[0];
+  render();
+}
+</script>
+</body>
+</html>
